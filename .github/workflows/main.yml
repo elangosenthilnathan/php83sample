@@ -1,0 +1,30 @@
+---
+name: Qwiet pre-zero Demo
+
+on:
+  pull_request: 
+
+
+jobs:
+  Qwiet-Static-Analysis:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup PHP with PECL extension
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.3'
+        extensions: imagick, swoole    
+
+    - name: Download ShiftLeft CLI
+      run: |
+        curl https://cdn.shiftleft.io/download/sl > ./sl && chmod a+rx ./sl 
+
+    - name: Run sl analyze
+      shell: bash
+      run: |
+         ./sl analyze --verbose --app ${GITHUB_REPOSITORY#*/} --php --tag branch=${{ github.head_ref || steps.extract_branch.outputs.branch }} . 
+      env:
+         SHIFTLEFT_ACCESS_TOKEN: ${{ secrets.SHIFTLEFT_ACCESS_TOKEN }}
